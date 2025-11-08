@@ -29,9 +29,11 @@
 	},
 	"dependencies": {
 		"@libsql/client": "^0.15.15",
+		"@tailwindcss/vite": "^4.1.17",
 		"better-sqlite3": "^12.4.1",
 		"dotenv": "^17.2.3",
 		"drizzle-orm": "^0.44.7",
-		"oslo": "^1.2.1"
+		"oslo": "^1.2.1",
+		"tailwindcss": "^4.1.17"
 	}
 }
