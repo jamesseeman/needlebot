@@ -26,3 +26,5 @@ vite.config.ts.timestamp-*
 src/lib/server/db/migrations/
 
 *.sqlite
+
+static/uploads
