@@ -5,9 +5,10 @@ dotenv.config();
 
 export default {
 	schema: './src/lib/server/db/schema.ts',
-	dialect: 'sqlite',
+	dialect: 'turso',
 	dbCredentials: {
-		url: process.env.SQLITE_DB_PATH || 'src/lib/server/db/data.sqlite'
+		url: process.env.TURSO_DATABASE_URL!,
+		authToken: process.env.TURSO_AUTH_TOKEN!
 	},
 	out: './src/lib/server/db/migrations'
 } satisfies Config;

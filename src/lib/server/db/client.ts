@@ -1,10 +1,14 @@
-import Database from "better-sqlite3";
+import { createClient } from "@libsql/client";
 import * as dotenv from "dotenv";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/libsql";
 
 dotenv.config();
 
-const client = new Database(process.env.SQLITE_DB_PATH);
+const client = createClient({
+  url: process.env.TURSO_DATABASE_URL!,
+  authToken: process.env.TURSO_AUTH_TOKEN!,
+});
+
 const db = drizzle(client);
 
 export { client, db };
