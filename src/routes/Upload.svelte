@@ -49,7 +49,8 @@
 
           if (!predictionResponse.ok) {
             const errorData = await predictionResponse.json().catch(() => ({}));
-            const errorMessage = errorData.error || predictionResponse.statusText;
+            const errorMessage =
+              errorData.error || predictionResponse.statusText;
             throw new Error(`Failed to analyze image: ${errorMessage}`);
           }
 
@@ -93,13 +94,13 @@
             uploadImage,
             loading: false,
           };
-          console.log(predictions[predictionIndex]);
         } catch (error) {
           console.error("Error processing file upload:", error);
           predictions[predictionIndex] = {
             uploadImage,
             loading: false,
-            error: error instanceof Error ? error.message : "Unknown error occurred",
+            error:
+              error instanceof Error ? error.message : "Unknown error occurred",
           };
         }
       });
@@ -109,46 +110,50 @@
   async function handleSubmit() {
     submitting = true;
 
-    // Convert blob URLs to base64 for each prediction
-    const predictionsWithBase64 = await Promise.all(
-      predictions.map(async (prediction) => {
-        try {
-          // Fetch the blob from the blob URL
-          const response = await fetch(prediction.uploadImage);
-          const blob = await response.blob();
+    // Submit each album separately
+    for (let i = 0; i < predictions.length; i++) {
+      const prediction = predictions[i];
 
-          // Convert blob to base64
-          const base64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
+      try {
+        // Convert blob URL to base64
+        const response = await fetch(prediction.uploadImage);
+        const blob = await response.blob();
 
-          return { ...prediction, uploadImage: base64 };
-        } catch (error) {
-          console.error("Error converting image to base64:", error);
-          // Return prediction without base64 if conversion fails
-          return prediction;
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+        const predictionWithBase64 = { ...prediction, uploadImage: base64 };
+
+        // Submit individual album
+        const submitResponse = await fetch("/api/albums", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify([predictionWithBase64]),
+        });
+
+        if (!submitResponse.ok) {
+          const errorData = await submitResponse.json().catch(() => ({}));
+          const errorMessage = errorData.error || submitResponse.statusText;
+          throw new Error(`Failed to save album: ${errorMessage}`);
         }
-      })
-    );
-
-    const submitResponse = await fetch("/api/albums", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(predictionsWithBase64),
-    });
-
-    if (!submitResponse.ok) {
-      throw new Error(`Failed to save new albums`);
-    } else {
-      submitting = false;
-      predictions = [];
-      onClose();
+      } catch (error) {
+        console.error(`Error submitting album ${i + 1}:`, error);
+        // Continue with next album even if one fails
+        alert(
+          `Failed to save album ${i + 1}: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+      }
     }
+
+    submitting = false;
+    predictions = [];
+    onClose();
   }
 </script>
 

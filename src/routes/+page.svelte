@@ -113,7 +113,7 @@
     </div>
 
     <div class="p-4 flex flex-col flex-1">
-      <h3 class="text-sm text-gray-500">{album.year}</h3>
+      <h3 class="text-sm text-gray-500">{album.year != 0 ? album.year : ''}</h3>
       <p class="text-xs text-gray-400 mt-1">{album.genre}</p>
       <div class="flex flex-row gap-4 justify-end items-center mt-auto">
         <a
@@ -122,7 +122,7 @@
           target="_blank"><img src={discogsLogo} class="w-5" alt="Discogs" /></a
         >
         <span
-          class="inline-block px-3 py-1 text-lg font-medium rounded-full {getConditionStyle(
+          class="inline-block px-3 py-1 text-sm font-medium rounded-full {getConditionStyle(
             album.condition
           )}">{album.condition}</span
         >
