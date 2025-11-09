@@ -1,8 +1,7 @@
 import { db } from "$lib/server/db/client";
 import { albums } from "$lib/server/db/schema";
 import { json, type RequestHandler } from "@sveltejs/kit";
-import { writeFile } from "fs/promises";
-import path from "path";
+import { put } from "@vercel/blob";
 
 export async function GET() {
   const allAlbums = await db.select().from(albums);
@@ -26,14 +25,18 @@ export const POST: RequestHandler = async ({ request }) => {
         const sanitizedArtist = album.artist.replace(/[^a-z0-9]/gi, "_").toLowerCase();
         const sanitizedAlbum = (album.album || album.title || "unknown").replace(/[^a-z0-9]/gi, "_").toLowerCase();
         const filename = `${timestamp}_${sanitizedArtist}_${sanitizedAlbum}.jpg`;
-        imagePath = `/uploads/${filename}`;
 
-        // Extract base64 data and save to filesystem
+        // Extract base64 data and convert to blob
         const base64Data = album.uploadImage.replace(/^data:image\/\w+;base64,/, "");
         const buffer = Buffer.from(base64Data, "base64");
-        const filePath = path.join(process.cwd(), "static", "uploads", filename);
 
-        await writeFile(filePath, buffer);
+        // Upload to Vercel Blob
+        const blob = await put(filename, buffer, {
+          access: "public",
+          contentType: "image/jpeg",
+        });
+
+        imagePath = blob.url;
       }
 
       // Map the data to the database schema
