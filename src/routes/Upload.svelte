@@ -161,19 +161,19 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
-    class="fixed text-black inset-0 bg-black/60 flex items-center justify-center z-50"
+    class="fixed text-black inset-0 bg-black/60 flex items-center justify-center z-50 p-2 md:p-4"
     onclick={onClose}
   >
     <div
-      class="bg-white rounded-lg shadow-2xl p-6 overflow-y-auto max-w-4xl w-full max-h-1/2 h-full mx-4"
+      class="bg-white rounded-lg shadow-2xl p-4 md:p-6 overflow-y-auto max-w-4xl w-full max-h-[90vh] md:max-h-[85vh]"
       onclick={(e) => e.stopPropagation()}
     >
       <div class="space-y-4">
         <label
-          class="flex items-center justify-center bg-gray-300 w-2/5 rounded py-3 mx-auto"
+          class="flex items-center justify-center bg-gray-300 w-full sm:w-4/5 md:w-3/5 lg:w-2/5 rounded py-3 mx-auto cursor-pointer hover:bg-gray-400 transition-colors"
         >
-          <span class="flex items-center justify-center gap-2 text-xl"
-            ><Disc3 /> Upload albums here</span
+          <span class="flex items-center justify-center gap-2 text-base md:text-xl px-2"
+            ><Disc3 size={20} class="md:hidden" /><Disc3 size={24} class="hidden md:block" /> <span class="text-center">Upload albums here</span></span
           >
           <input
             hidden
@@ -192,7 +192,7 @@
         <button
           disabled={predictions.length == 0}
           onclick={handleSubmit}
-          class="block text-xl justify-center items-center gap-2 w-4/5 mx-auto bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400"
+          class="flex text-base md:text-xl justify-center items-center gap-2 w-full sm:w-4/5 mx-auto bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400"
         >
           <p>Submit</p>
           {#if submitting}
@@ -208,62 +208,63 @@
 
 {#snippet predictionCard(prediction, index)}
   <div
-    class="mt-4 p-5 rounded border border-gray-200 shadow-md relative flex flex-row items-start gap-4"
+    class="mt-4 p-3 md:p-5 rounded border border-gray-200 shadow-md relative flex flex-col md:flex-row items-start gap-3 md:gap-4"
   >
     <button
       onclick={() => removePrediction(index)}
-      class="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition-colors"
+      class="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition-colors z-10"
       aria-label="Remove prediction"
     >
-      <X size={20} class="text-gray-600" />
+      <X size={18} class="text-gray-600 md:hidden" />
+      <X size={20} class="text-gray-600 hidden md:block" />
     </button>
 
     <img
       src={prediction.uploadImage}
       alt="Uploaded preview"
-      class="h-40 w-auto object-contain"
+      class="h-32 md:h-40 w-auto object-contain mx-auto md:mx-0"
     />
 
     {#if !prediction.loading}
       {#if prediction.error}
-        <div class="flex items-center justify-center flex-1 self-center">
+        <div class="flex items-center justify-center flex-1 self-center w-full">
           <div class="text-center text-red-600">
             <p class="font-semibold">Error</p>
             <p class="text-sm">{prediction.error}</p>
           </div>
         </div>
       {:else}
-        <ArrowRight class="text-gray-700 self-center" size={48} />
+        <ArrowRight class="text-gray-700 self-center mx-auto md:mx-0 rotate-90 md:rotate-0" size={32} />
 
-        <img src={prediction.cover_image} class="h-40 w-auto object-contain" />
-        <div class="w-full h-40 flex flex-col">
+        <img src={prediction.cover_image} class="h-32 md:h-40 w-auto object-contain mx-auto md:mx-0" />
+        <div class="w-full flex flex-col">
           <a
-            class="text-xl font-bold truncate flex flex-row items-center gap-2 hover:underline"
+            class="text-lg md:text-xl font-bold truncate flex flex-row items-center gap-2 hover:underline"
             href="https://discogs.com{prediction.uri}"
             target="_blank"
-            ><img src={discogsLogo} class="w-5" alt="Discogs" />
-            {prediction.album}</a
+            ><img src={discogsLogo} class="w-4 md:w-5" alt="Discogs" />
+            <span class="truncate">{prediction.album}</span></a
           >
 
-          <h2 class="text-gray-600 truncate">{prediction.artist}</h2>
-          <h3 class="text-sm text-gray-500">{prediction.year}</h3>
-          <p class=" text-xs text-gray-400 mt-1">{prediction.genre}</p>
-          <div class="flex flex-row gap-4 justify-end items-center mt-auto">
+          <h2 class="text-gray-600 truncate text-sm md:text-base">{prediction.artist}</h2>
+          <h3 class="text-xs md:text-sm text-gray-500">{prediction.year}</h3>
+          <p class="text-xs text-gray-400 mt-1 truncate">{prediction.genre}</p>
+          <div class="flex flex-row gap-2 md:gap-4 justify-end items-center mt-auto flex-wrap">
             <span
-              class="inline-block px-3 py-1 text-lg font-medium rounded-full {getConditionStyle(
+              class="inline-block px-2 md:px-3 py-0.5 md:py-1 text-sm md:text-lg font-medium rounded-full {getConditionStyle(
                 prediction.condition
               )}">{prediction.condition}</span
             >
-            <h1 class="text-gray-600 text-lg truncate">
+            <h1 class="text-gray-600 text-base md:text-lg truncate">
               ${prediction.price.toFixed(2)}
             </h1>
           </div>
         </div>
       {/if}
     {:else}
-      <div class="flex items-center justify-center flex-1 self-center">
+      <div class="flex items-center justify-center flex-1 self-center w-full">
         <div
-          class="animate-spin rounded-full h-12 w-12 border-6 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] text-gray-500"
+          class="animate-spin rounded-full h-10 w-10 md:h-12 md:w-12 border-6 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] text-gray-500"
         ></div>
       </div>
     {/if}

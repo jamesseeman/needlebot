@@ -59,11 +59,11 @@
 <Header />
 
 <div
-  class="bg-white shadow-lg px-6 rounded py-3 flex items-center gap-4 z-50 w-1/2 mx-auto"
+  class="bg-white shadow-lg px-3 md:px-6 rounded py-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 z-50 w-full sm:w-4/5 md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto"
 >
   <button
     onclick={uploadModal}
-    class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded transition-colors"
+    class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded transition-colors whitespace-nowrap"
     >Upload</button
   >
 
@@ -76,7 +76,7 @@
 </div>
 
 <div
-  class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-6 max-w-7xl mx-auto"
+  class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 p-4 md:p-6 max-w-7xl mx-auto"
 >
   {#each filteredAlbums as album (album.id)}
     {@render albumCard(album)}
@@ -104,29 +104,30 @@
       </div>
       <button
         onclick={() => toggleImage(album.id)}
-        class="absolute bottom-2 right-2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors backdrop-blur-sm flex items-center gap-2 px-4"
+        class="absolute bottom-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1.5 md:p-2 rounded-full transition-colors backdrop-blur-sm flex items-center gap-1 md:gap-2 px-2 md:px-4 text-xs md:text-base"
         aria-label="Toggle between Discogs and uploaded image"
       >
-        {imageStates[album.id] ? "User" : "Discogs"}
-        <RefreshCcw size={16} />
+        <span class="hidden sm:inline">{imageStates[album.id] ? "User" : "Discogs"}</span>
+        <RefreshCcw size={14} class="sm:hidden" />
+        <RefreshCcw size={16} class="hidden sm:block" />
       </button>
     </div>
 
-    <div class="p-4 flex flex-col flex-1">
+    <div class="p-3 md:p-4 flex flex-col flex-1">
       <h3 class="text-sm text-gray-500">{album.year != 0 ? album.year : ''}</h3>
-      <p class="text-xs text-gray-400 mt-1">{album.genre}</p>
-      <div class="flex flex-row gap-4 justify-end items-center mt-auto">
+      <p class="text-xs text-gray-400 mt-1 truncate">{album.genre}</p>
+      <div class="flex flex-row gap-2 md:gap-4 justify-end items-center mt-auto flex-wrap">
         <a
           class="truncate"
           href="https://discogs.com{album.discogs_uri}"
-          target="_blank"><img src={discogsLogo} class="w-5" alt="Discogs" /></a
+          target="_blank"><img src={discogsLogo} class="w-4 md:w-5" alt="Discogs" /></a
         >
         <span
-          class="inline-block px-3 py-1 text-sm font-medium rounded-full {getConditionStyle(
+          class="inline-block px-2 md:px-3 py-0.5 md:py-1 text-xs md:text-sm font-medium rounded-full {getConditionStyle(
             album.condition
           )}">{album.condition}</span
         >
-        <h1 class="text-gray-600 text-lg truncate">
+        <h1 class="text-gray-600 text-base md:text-lg truncate">
           ${Number.parseFloat(album.discogs_price).toFixed(2)}
         </h1>
       </div>
