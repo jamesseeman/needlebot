@@ -67,6 +67,15 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const discogsData = await response.json();
+
+    // Check if we have results
+    if (!discogsData.results || discogsData.results.length === 0) {
+      return json(
+        { error: "No results found for this album" },
+        { status: 404 }
+      );
+    }
+
     const condition =
       toDiscogsClassification[data.condition.toLowerCase()] ?? null;
 

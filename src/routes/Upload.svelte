@@ -33,57 +33,75 @@
     const files = target.files;
 
     if (files && files.length > 0) {
-      Array.from(files).forEach(async (file, index) => {
+      Array.from(files).forEach(async (file) => {
         const uploadImage = URL.createObjectURL(file);
+        const predictionIndex = predictions.length;
         predictions.push({ loading: true, uploadImage });
 
-        const formData = new FormData();
-        formData.append("image", file);
+        try {
+          const formData = new FormData();
+          formData.append("image", file);
 
-        const predictionResponse = await fetch("/api/predict", {
-          method: "POST",
-          body: formData,
-        });
+          const predictionResponse = await fetch("/api/predict", {
+            method: "POST",
+            body: formData,
+          });
 
-        if (!predictionResponse.ok) {
-          throw new Error(
-            `Failed to analyze image: ${predictionResponse.statusText}`
-          );
+          if (!predictionResponse.ok) {
+            const errorData = await predictionResponse.json().catch(() => ({}));
+            const errorMessage = errorData.error || predictionResponse.statusText;
+            throw new Error(`Failed to analyze image: ${errorMessage}`);
+          }
+
+          const predictionData = await predictionResponse.json();
+          let responseText = predictionData.content[0].text;
+
+          // Strip markdown code blocks if present
+          responseText = responseText
+            .replace(/```json\n?/g, "")
+            .replace(/```\n?/g, "")
+            .trim();
+
+          const recordData = JSON.parse(responseText);
+
+          const searchResponse = await fetch("/api/search", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(recordData),
+          });
+
+          if (!searchResponse.ok) {
+            const errorData = await searchResponse.json().catch(() => ({}));
+            const errorMessage = errorData.error || searchResponse.statusText;
+            console.error(`Failed to search Discogs: ${errorMessage}`);
+
+            predictions[predictionIndex] = {
+              ...recordData,
+              uploadImage,
+              loading: false,
+              error: errorMessage,
+            };
+            return;
+          }
+
+          const searchResult = await searchResponse.json();
+          predictions[predictionIndex] = {
+            ...recordData,
+            ...searchResult,
+            uploadImage,
+            loading: false,
+          };
+          console.log(predictions[predictionIndex]);
+        } catch (error) {
+          console.error("Error processing file upload:", error);
+          predictions[predictionIndex] = {
+            uploadImage,
+            loading: false,
+            error: error instanceof Error ? error.message : "Unknown error occurred",
+          };
         }
-
-        const predictionData = await predictionResponse.json();
-        let responseText = predictionData.content[0].text;
-
-        // Strip markdown code blocks if present
-        responseText = responseText
-          .replace(/```json\n?/g, "")
-          .replace(/```\n?/g, "")
-          .trim();
-
-        const recordData = JSON.parse(responseText);
-
-        const searchResponse = await fetch("/api/search", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(recordData),
-        });
-
-        if (!searchResponse.ok) {
-          throw new Error(
-            `Failed to search Discogs: ${searchResponse.statusText}`
-          );
-        }
-
-        const searchResult = await searchResponse.json();
-        predictions[index] = {
-          ...recordData,
-          ...searchResult,
-          uploadImage,
-          loading: false,
-        };
-        console.log(predictions[index]);
       });
     }
   }
@@ -202,32 +220,41 @@
     />
 
     {#if !prediction.loading}
-      <ArrowRight class="text-gray-700 self-center" size={48} />
-
-      <img src={prediction.cover_image} class="h-40 w-auto object-contain" />
-      <div class="w-full h-40 flex flex-col">
-        <a
-          class="text-xl font-bold truncate flex flex-row items-center gap-2 hover:underline"
-          href="https://discogs.com{prediction.uri}"
-          target="_blank"
-          ><img src={discogsLogo} class="w-5" alt="Discogs" />
-          {prediction.album}</a
-        >
-
-        <h2 class="text-gray-600 truncate">{prediction.artist}</h2>
-        <h3 class="text-sm text-gray-500">{prediction.year}</h3>
-        <p class=" text-xs text-gray-400 mt-1">{prediction.genre}</p>
-        <div class="flex flex-row gap-4 justify-end items-center mt-auto">
-          <span
-            class="inline-block px-3 py-1 text-lg font-medium rounded-full {getConditionStyle(
-              prediction.condition
-            )}">{prediction.condition}</span
-          >
-          <h1 class="text-gray-600 text-lg truncate">
-            ${prediction.price.toFixed(2)}
-          </h1>
+      {#if prediction.error}
+        <div class="flex items-center justify-center flex-1 self-center">
+          <div class="text-center text-red-600">
+            <p class="font-semibold">Error</p>
+            <p class="text-sm">{prediction.error}</p>
+          </div>
         </div>
-      </div>
+      {:else}
+        <ArrowRight class="text-gray-700 self-center" size={48} />
+
+        <img src={prediction.cover_image} class="h-40 w-auto object-contain" />
+        <div class="w-full h-40 flex flex-col">
+          <a
+            class="text-xl font-bold truncate flex flex-row items-center gap-2 hover:underline"
+            href="https://discogs.com{prediction.uri}"
+            target="_blank"
+            ><img src={discogsLogo} class="w-5" alt="Discogs" />
+            {prediction.album}</a
+          >
+
+          <h2 class="text-gray-600 truncate">{prediction.artist}</h2>
+          <h3 class="text-sm text-gray-500">{prediction.year}</h3>
+          <p class=" text-xs text-gray-400 mt-1">{prediction.genre}</p>
+          <div class="flex flex-row gap-4 justify-end items-center mt-auto">
+            <span
+              class="inline-block px-3 py-1 text-lg font-medium rounded-full {getConditionStyle(
+                prediction.condition
+              )}">{prediction.condition}</span
+            >
+            <h1 class="text-gray-600 text-lg truncate">
+              ${prediction.price.toFixed(2)}
+            </h1>
+          </div>
+        </div>
+      {/if}
     {:else}
       <div class="flex items-center justify-center flex-1 self-center">
         <div
