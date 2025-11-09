@@ -33,6 +33,27 @@
   function toggleImage(albumId: number) {
     imageStates[albumId] = !imageStates[albumId];
   }
+
+  function searchAlbums(albums: typeof data.albums, searchTerm: string) {
+    if (!searchTerm.trim()) {
+      return albums;
+    }
+
+    const query = searchTerm.toLowerCase();
+
+    return albums.filter((album) => {
+      return (
+        album.name?.toLowerCase().includes(query) ||
+        album.artist?.toLowerCase().includes(query) ||
+        album.year?.toString().includes(query) ||
+        album.condition?.toLowerCase().includes(query) ||
+        album.genre?.toLowerCase().includes(query) ||
+        album.discogs_price?.toString().includes(query)
+      );
+    });
+  }
+
+  let filteredAlbums = $derived(searchAlbums(data.albums, search));
 </script>
 
 <Header />
@@ -57,7 +78,7 @@
 <div
   class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-6 max-w-7xl mx-auto"
 >
-  {#each data.albums as album (album.id)}
+  {#each filteredAlbums as album (album.id)}
     {@render albumCard(album)}
   {/each}
 </div>
